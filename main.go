@@ -24,7 +24,7 @@ func main() {
 	if x <= 0 || y <= 0 {
 		log.Fatalln("invalid arg [x, y]")
 	}
-	if b = strings.TrimSpace(b); b == "" {
+	if strings.TrimSpace(b) == "" {
 		log.Fatalln("invalid arg [b]")
 	}
 	cornpuzzle.Verbose = v
