@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var Verbose = true
+var Verbose = false
 
 // Corn 表示玉米拼图的二维映射板子（网格），支持环绕
 type Corn struct {
@@ -298,6 +298,14 @@ func Create(x, y int, blk []string) (*Puzzle, error) {
 	}
 	if len(blks) == 0 {
 		return nil, errors.New("无效的拼图块数量")
+	}
+	// 预检查：计算所有块的总单元格数是否等于板子大小
+	totalCells := 0
+	for _, b := range blks {
+		totalCells += b.Count()
+	}
+	if totalCells != x*y {
+		return nil, fmt.Errorf("块的总单元格数 %d 不等于拼图大小 %d", totalCells, x*y)
 	}
 	if Verbose {
 		log.Printf("创建玉米拼图: 尺寸 [%d,%d], 拼图块数量 %d\n", x, y, len(blks))
