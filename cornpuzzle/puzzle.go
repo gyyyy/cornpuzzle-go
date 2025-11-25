@@ -142,17 +142,18 @@ func newCorn(x, y int) *Corn {
 }
 
 // Block 表示一个拼图块
-// 块有编号、左偏移、高度和形状（二维数组）
+// 块有编号、左偏移、高度、宽度和形状（二维数组）
 type Block struct {
 	no     int     // 块的编号
 	left   int     // 块的左偏移（从哪列开始）
-	height int     // 块的高度
+	width  int     // 块的最大宽度
+	height int     // 块的最大高度
 	item   [][]int // 二维数组表示块的形状，>0表示占用，0表示空
 }
 
 // same 检查两个块是否形状相同（不考虑翻转）
 func (b *Block) same(blk *Block) bool {
-	if blk.left != b.left || blk.height != b.height {
+	if blk.left != b.left || blk.width != b.width || blk.height != b.height {
 		return false
 	}
 	for i, litem := range b.item {
@@ -188,23 +189,13 @@ func (b *Block) Count() int {
 	return count
 }
 
-// Width 返回块的最大宽度（最宽行的长度）
-func (b *Block) Width() int {
-	maxWidth := 0
-	for _, item := range b.item {
-		if len(item) > maxWidth {
-			maxWidth = len(item)
-		}
-	}
-	return maxWidth
-}
-
 // Reverse 返回块的翻转版本（上下翻转）
 // 返回：翻转后的块
 func (b *Block) Reverse() *Block {
 	rb := &Block{
 		no:     b.no,
 		left:   0,
+		width:  b.width,
 		height: b.height,
 		item:   make([][]int, 0, len(b.item)),
 	}
@@ -255,9 +246,13 @@ func newBlock(no int, s string) *Block {
 			no:   no,
 			item: make([][]int, len(line)),
 		}
+		width int
 	)
-	for i := 0; i < len(line); i++ {
+	for i := range line {
 		l := line[len(line)-i-1]
+		if len(l) > width {
+			width = len(l)
+		}
 		item := make([]int, len(l))
 		for j, r := range l {
 			if r == ' ' {
@@ -269,6 +264,7 @@ func newBlock(no int, s string) *Block {
 		}
 		blk.item[i] = item
 	}
+	blk.width = width
 	blk.height = len(blk.item)
 	return blk
 }

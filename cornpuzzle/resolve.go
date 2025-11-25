@@ -28,7 +28,7 @@ func sort(pzl *Puzzle) []int {
 		if cmp != 0 {
 			return cmp
 		}
-		if cmp = left.Width() - right.Width(); cmp != 0 {
+		if cmp = left.width - right.width; cmp != 0 {
 			return cmp
 		}
 		if cmp = left.Count() - right.Count(); cmp != 0 {
