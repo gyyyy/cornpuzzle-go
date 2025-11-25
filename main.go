@@ -25,7 +25,7 @@ func main() {
 	if x <= 0 || y <= 0 {
 		log.Fatalln("无效参数 [x, y]")
 	}
-	if b = strings.TrimSpace(b); b == "" {
+	if strings.TrimSpace(b) == "" {
 		log.Fatalln("无效参数 [b]")
 	}
 	cornpuzzle.Verbose = v
