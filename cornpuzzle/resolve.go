@@ -114,7 +114,7 @@ func Resolve(pzl *Puzzle) bool {
 		}
 	}
 	if Verbose {
-		log.Printf("starting brute force with %v\n", sorted)
+		log.Println("=== 开始求解玉米拼图 ===")
 	}
 	return bruteForce(pzl, sorted, len(sorted)) && check(pzl)
 }

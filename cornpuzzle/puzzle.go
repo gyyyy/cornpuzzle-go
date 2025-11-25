@@ -242,12 +242,13 @@ type Puzzle struct {
 	Block []*Block
 }
 
+// corn 3d jigsaw puzzle
 func Create(x, y int, blk []string) (*Puzzle, error) {
 	if x <= 0 || y <= 0 {
-		return nil, fmt.Errorf("invalid dimension of corn with [%d,%d]", x, y)
+		return nil, fmt.Errorf("无效的玉米拼图尺寸 [%d,%d]", x, y)
 	}
 	if len(blk) == 0 {
-		return nil, errors.New("block cannot be empty")
+		return nil, errors.New("拼图块不能为空")
 	}
 	blks := make([]*Block, 0, len(blk))
 	for i, s := range blk {
@@ -257,10 +258,10 @@ func Create(x, y int, blk []string) (*Puzzle, error) {
 		blks = append(blks, newBlock(i+1, s))
 	}
 	if len(blks) == 0 {
-		return nil, errors.New("invalid count of block")
+		return nil, errors.New("无效的拼图块数量")
 	}
 	if Verbose {
-		log.Printf("created puzzle with corn [%d,%d] and %d block\n", x, y, len(blks))
+		log.Printf("创建玉米拼图: 尺寸 [%d,%d], 拼图块数量 %d\n", x, y, len(blks))
 	}
 	return &Puzzle{
 		Corn:  newCorn(x, y),
