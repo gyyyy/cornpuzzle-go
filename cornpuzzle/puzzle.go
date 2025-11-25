@@ -175,7 +175,7 @@ func (b *Block) absame(blk *Block) bool {
 }
 
 // Count 返回块中非空单元格的数量
-// 返回：非空单元格的数量
+// Count 返回块中非空单元格的数量
 func (b *Block) Count() int {
 	var count int
 	for _, item := range b.item {
@@ -186,6 +186,17 @@ func (b *Block) Count() int {
 		}
 	}
 	return count
+}
+
+// Width 返回块的最大宽度（最宽行的长度）
+func (b *Block) Width() int {
+	maxWidth := 0
+	for _, item := range b.item {
+		if len(item) > maxWidth {
+			maxWidth = len(item)
+		}
+	}
+	return maxWidth
 }
 
 // Reverse 返回块的翻转版本（上下翻转）

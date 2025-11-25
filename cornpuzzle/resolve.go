@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"time"
 )
 
 var (
 	dup = map[int][]int{} // 记录重复的块编号，用于优化搜索（跳过相同的块）
 )
 
-// sort 对拼图的块进行排序，按高度降序、单元格数量降序、编号升序
+// sort 对拼图的块进行排序，按高度降序、宽度降序、单元格数量降序、编号升序
 func sort(pzl *Puzzle) []int {
 	var (
 		n   = len(pzl.Block)
@@ -26,6 +27,9 @@ func sort(pzl *Puzzle) []int {
 			cmp   = left.height - right.height
 		)
 		if cmp != 0 {
+			return cmp
+		}
+		if cmp = left.Width() - right.Width(); cmp != 0 {
 			return cmp
 		}
 		if cmp = left.Count() - right.Count(); cmp != 0 {
@@ -51,6 +55,15 @@ func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 	if n == 0 {
 		return true
 	}
+	// 剪枝：计算剩余块的总单元格数，如果超过剩余空格，提前失败
+	remainingCells := 0
+	for i := 0; i < n; i++ {
+		remainingCells += pzl.Block[sorted[i]-1].Count()
+	}
+	if remainingCells > pzl.Corn.remain {
+		return false
+	}
+
 	skip := map[int]bool{}
 	for i := range n {
 		blk := pzl.Block[sorted[i]-1]
@@ -96,8 +109,20 @@ func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 
 // Resolve 求解给定的拼图
 // 参数：pzl - 要解决的拼图实例
-// 返回：true 如果成功解决，false 如果无法解决
+// 返回：true 如果成功解决，false 如果无法解决或超时
 func Resolve(pzl *Puzzle) bool {
+	// 预检查：计算所有块的总单元格数是否等于板子大小
+	totalCells := 0
+	for _, blk := range pzl.Block {
+		totalCells += blk.Count()
+	}
+	if totalCells != pzl.Corn.x*pzl.Corn.y {
+		if Verbose {
+			log.Printf("块的总单元格数 %d 不等于板子大小 %d，无法解决\n", totalCells, pzl.Corn.x*pzl.Corn.y)
+		}
+		return false
+	}
+
 	sorted := sort(pzl)
 	for i := range sorted {
 		left := pzl.Block[sorted[i]-1]
@@ -122,5 +147,20 @@ func Resolve(pzl *Puzzle) bool {
 	if Verbose {
 		log.Println("=== 开始求解玉米拼图 ===")
 	}
-	return backtrack(pzl, sorted, len(sorted)) && check(pzl)
+
+	// 使用goroutine和超时机制运行求解
+	resultChan := make(chan bool, 1)
+	go func() {
+		resultChan <- backtrack(pzl, sorted, len(sorted)) && check(pzl)
+	}()
+
+	select {
+	case result := <-resultChan:
+		return result
+	case <-time.After(10 * time.Second): // 10秒超时
+		if Verbose {
+			log.Println("求解超时")
+		}
+		return false
+	}
 }
