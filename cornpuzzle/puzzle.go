@@ -143,7 +143,7 @@ func (c *Corn) String() string {
 		}
 		s += "\n"
 	}
-	return s
+	return s[:len(s)-1]
 }
 
 // newCorn 创建一个新的 Corn 实例，尺寸为 x*y，所有位置初始为空
@@ -301,7 +301,7 @@ func newBlock(no int, s string) *Block {
 					for _, dir := range directions {
 						ni, nj := i+dir[0], j+dir[1]
 						// 检查是否超出边界或为空
-						if ni < 0 || ni >= len(blk.item) || nj < 0 || nj >= len(row) || blk.item[ni][nj] <= 0 {
+						if ni < 0 || ni >= len(blk.item) || nj < 0 || nj >= len(blk.item[ni]) || blk.item[ni][nj] <= 0 {
 							perimeter++
 						}
 					}

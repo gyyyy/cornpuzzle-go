@@ -39,9 +39,9 @@ func main() {
 		duration  = time.Since(startTime)
 	)
 	if ok {
-		fmt.Printf("解谜成功：\n%s\n", pzl.Corn)
+		fmt.Printf("谜题答案:\n%s\n", pzl.Corn)
 	} else {
 		fmt.Println("解谜失败")
 	}
-	fmt.Printf("求解耗时：%v\n", duration)
+	fmt.Printf("求解耗时: %v\n", duration)
 }

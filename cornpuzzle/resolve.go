@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	dup = map[int][]int{} // 记录重复的块编号，用于优化搜索（跳过相同的块）
+	dup       = map[int][]int{} // 记录重复的块编号，用于优化搜索（跳过相同的块）
+	stepCount = 0               // 记录尝试步骤数
 )
 
 // sort 对拼图的块进行排序，按高度降序、宽度降序、单元格数量降序、编号升序
@@ -99,26 +100,18 @@ func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 				continue
 			}
 		}
-		if Verbose {
-			fmt.Printf("%d ", blk.no)
+		stepCount++
+		if Verbose && stepCount%1000 == 0 {
+			fmt.Printf("\r尝试步骤: %d, 剩余块: %d", stepCount, n)
 		}
 		if sortedCopy[i], sortedCopy[n-1] = sortedCopy[n-1], sortedCopy[i]; backtrack(pzl, sortedCopy, n-1) {
-			if Verbose && n == 1 {
-				fmt.Println()
+			if Verbose && n == len(pzl.Block) {
+				fmt.Printf("\r求解成功！总尝试步骤: %d\n", stepCount)
 			}
 			return true
 		}
 		sortedCopy[i], sortedCopy[n-1] = sortedCopy[n-1], sortedCopy[i]
-		if pzl.Corn.remove(blk.no); Verbose {
-			if n == len(pzl.Block) {
-				fmt.Println()
-			} else {
-				// 优化输出：减少系统调用次数
-				if fmt.Print("\x08 \x08"); blk.no >= 10 {
-					fmt.Print("\x08")
-				}
-			}
-		}
+		pzl.Corn.remove(blk.no)
 	}
 	return false
 }
@@ -149,7 +142,9 @@ func Resolve(pzl *Puzzle) bool {
 		}
 	}
 	if Verbose {
-		log.Println("=== 开始求解玉米拼图 ===")
+		log.Printf("=== 开始求解玉米拼图 ===")
+		log.Printf("总块数: %d, 剩余空格: %d", len(sorted), pzl.Corn.remain)
 	}
+	stepCount = 0 // 重置步骤计数器
 	return backtrack(pzl, sorted, len(sorted)) && check(pzl)
 }
