@@ -33,6 +33,25 @@ func (c *Corn) next() (int, int) {
 	return -1, -1
 }
 
+// boundLength 计算当前空位的边界周长
+func (c *Corn) boundLength() int {
+	perimeter := 0
+	for i := 0; i < c.y; i++ {
+		for j := 0; j < c.x; j++ {
+			if c.Groove[j][i] == 0 { // 空位
+				directions := [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+				for _, dir := range directions {
+					ni, nj := i+dir[0], j+dir[1]
+					if ni < 0 || ni >= c.y || nj < 0 || nj >= c.x || c.Groove[nj][ni] != 0 {
+						perimeter++
+					}
+				}
+			}
+		}
+	}
+	return perimeter
+}
+
 // fill 在指定位置 (x, y) 填充值 val
 // x 和 y 从1开始，支持环绕（x超出范围时环绕到另一侧）
 func (c *Corn) fill(x, y, val int) bool {
@@ -142,13 +161,15 @@ func newCorn(x, y int) *Corn {
 }
 
 // Block 表示一个拼图块
-// 块有编号、左偏移、高度、宽度和形状（二维数组）
+// 块有编号、左偏移、高度、宽度、复杂度和形状（二维数组）
 type Block struct {
-	no     int     // 块的编号
-	left   int     // 块的左偏移（从哪列开始）
-	width  int     // 块的最大宽度
-	height int     // 块的最大高度
-	item   [][]int // 二维数组表示块的形状，>0表示占用，0表示空
+	no         int     // 块的编号
+	left       int     // 块的左偏移（从哪列开始）
+	width      int     // 块的最大宽度
+	height     int     // 块的最大高度
+	complexity float64 // 块的形状复杂度（预计算）
+	perimeter  int     // 块的边界周长
+	item       [][]int // 二维数组表示块的形状，>0表示占用，0表示空
 }
 
 // same 检查两个块是否形状相同（不考虑翻转）
@@ -193,11 +214,13 @@ func (b *Block) Count() int {
 // 返回：翻转后的块
 func (b *Block) Reverse() *Block {
 	rb := &Block{
-		no:     b.no,
-		left:   0,
-		width:  b.width,
-		height: b.height,
-		item:   make([][]int, 0, len(b.item)),
+		no:         b.no,
+		left:       0,
+		width:      b.width,
+		height:     b.height,
+		complexity: b.complexity, // 翻转后的复杂度与原块相同
+		perimeter:  b.perimeter,  // 周长相同
+		item:       make([][]int, 0, len(b.item)),
 	}
 	for i := len(b.item) - 1; i >= 0; i-- {
 		var (
@@ -266,6 +289,28 @@ func newBlock(no int, s string) *Block {
 	}
 	blk.width = width
 	blk.height = len(blk.item)
+	// 计算复杂度
+	area := float64(blk.Count())
+	if area > 0 {
+		perimeter := 0
+		for i, row := range blk.item {
+			for j, cell := range row {
+				if cell > 0 {
+					// 检查四个方向的邻居
+					directions := [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
+					for _, dir := range directions {
+						ni, nj := i+dir[0], j+dir[1]
+						// 检查是否超出边界或为空
+						if ni < 0 || ni >= len(blk.item) || nj < 0 || nj >= len(row) || blk.item[ni][nj] <= 0 {
+							perimeter++
+						}
+					}
+				}
+			}
+		}
+		blk.complexity = float64(perimeter) / area
+		blk.perimeter = perimeter
+	}
 	return blk
 }
 

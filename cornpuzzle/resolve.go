@@ -56,15 +56,38 @@ func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 	}
 	// 剪枝：计算剩余块的总单元格数，如果超过剩余空格，提前失败
 	remainingCells := 0
-	for i := 0; i < n; i++ {
+	for i := range n {
 		remainingCells += pzl.Block[sorted[i]-1].Count()
 	}
 	if remainingCells > pzl.Corn.remain {
 		return false
 	}
+	var (
+		boundary   = pzl.Corn.boundLength() // 计算当前空位的边界周长
+		sortedCopy = make([]int, n)         // 复制剩余块列表，用于动态排序
+	)
+	copy(sortedCopy, sorted[:n])
+	// 按嵌入度动态排序：周长差越小越优先
+	slices.SortFunc(sortedCopy, func(a, b int) int {
+		var (
+			scoreA = pzl.Block[a-1].perimeter - boundary
+			scoreB = pzl.Block[b-1].perimeter - boundary
+		)
+		if scoreA < 0 {
+			scoreA = -scoreA
+		}
+		if scoreB < 0 {
+			scoreB = -scoreB
+		}
+		if scoreA != scoreB {
+			return scoreA - scoreB
+		}
+		// 相同则按原顺序
+		return a - b
+	})
 	skip := map[int]bool{}
 	for i := range n {
-		blk := pzl.Block[sorted[i]-1]
+		blk := pzl.Block[sortedCopy[i]-1]
 		if skip[blk.no] {
 			continue
 		}
@@ -79,25 +102,20 @@ func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 		if Verbose {
 			fmt.Printf("%d ", blk.no)
 		}
-		if sorted[i], sorted[n-1] = sorted[n-1], sorted[i]; backtrack(pzl, sorted, n-1) {
+		if sortedCopy[i], sortedCopy[n-1] = sortedCopy[n-1], sortedCopy[i]; backtrack(pzl, sortedCopy, n-1) {
 			if Verbose && n == 1 {
 				fmt.Println()
 			}
 			return true
 		}
-		sorted[i], sorted[n-1] = sorted[n-1], sorted[i]
+		sortedCopy[i], sortedCopy[n-1] = sortedCopy[n-1], sortedCopy[i]
 		if pzl.Corn.remove(blk.no); Verbose {
 			if n == len(pzl.Block) {
 				fmt.Println()
 			} else {
-				j := 2
-				if blk.no >= 10 {
-					j++
-				}
-				for _, s := range []string{"\x08", " ", "\x08"} {
-					for range j {
-						fmt.Print(s)
-					}
+				// 优化输出：减少系统调用次数
+				if fmt.Print("\x08 \x08"); blk.no >= 10 {
+					fmt.Print("\x08")
 				}
 			}
 		}
