@@ -7,9 +7,10 @@ import (
 )
 
 var (
-	dup = map[int][]int{}
+	dup = map[int][]int{} // 记录重复的块编号，用于优化搜索（跳过相同的块）
 )
 
+// sort 对拼图的块进行排序，按高度降序、单元格数量降序、编号升序
 func sort(pzl *Puzzle) []int {
 	var (
 		n   = len(pzl.Block)
@@ -36,6 +37,7 @@ func sort(pzl *Puzzle) []int {
 	return sli
 }
 
+// check 检查拼图是否已完全解决（所有空格都被填满）
 func check(pzl *Puzzle) bool {
 	if pzl.Corn.remain > 0 {
 		return false
@@ -44,7 +46,8 @@ func check(pzl *Puzzle) bool {
 	return x == -1 && y == -1
 }
 
-func bruteForce(pzl *Puzzle, sorted []int, n int) bool {
+// backtrack 使用回溯法尝试放置块
+func backtrack(pzl *Puzzle, sorted []int, n int) bool {
 	if n == 0 {
 		return true
 	}
@@ -65,7 +68,7 @@ func bruteForce(pzl *Puzzle, sorted []int, n int) bool {
 		if Verbose {
 			fmt.Printf("%d ", blk.no)
 		}
-		if sorted[i], sorted[n-1] = sorted[n-1], sorted[i]; bruteForce(pzl, sorted, n-1) {
+		if sorted[i], sorted[n-1] = sorted[n-1], sorted[i]; backtrack(pzl, sorted, n-1) {
 			if Verbose && n == 1 {
 				fmt.Println()
 			}
@@ -91,6 +94,9 @@ func bruteForce(pzl *Puzzle, sorted []int, n int) bool {
 	return false
 }
 
+// Resolve 求解给定的拼图
+// 参数：pzl - 要解决的拼图实例
+// 返回：true 如果成功解决，false 如果无法解决
 func Resolve(pzl *Puzzle) bool {
 	sorted := sort(pzl)
 	for i := range sorted {
@@ -116,5 +122,5 @@ func Resolve(pzl *Puzzle) bool {
 	if Verbose {
 		log.Println("=== 开始求解玉米拼图 ===")
 	}
-	return bruteForce(pzl, sorted, len(sorted)) && check(pzl)
+	return backtrack(pzl, sorted, len(sorted)) && check(pzl)
 }
