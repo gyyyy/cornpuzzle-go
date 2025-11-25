@@ -10,6 +10,7 @@
 
 # Test binary, built with `go test -c`
 *.test
+*.txt
 
 # Code coverage profiles and other test artifacts
 *.out
@@ -28,5 +29,16 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# System temporary files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+icon?
